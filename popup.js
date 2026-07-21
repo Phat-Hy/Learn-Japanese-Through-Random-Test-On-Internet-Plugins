@@ -47,25 +47,8 @@ async function performAnalysis() {
     // 1. Get Translation & Romaji
     const sentenceResult = await sendMessageAsync({ action: "analyze-sentence", text });
     
-    // 2. Segment
-    const segmenter = new Intl.Segmenter("ja-JP", { granularity: "word" });
-    const rawSegments = Array.from(segmenter.segment(text));
-    const segments = mergeSegments(rawSegments);
-    
-    // Query Jisho for Japanese words
-    const wordsToQuery = segments
-      .filter(s => s.isWordLike && isJapanese(s.segment))
-      .map(s => s.segment);
-    const uniqueWords = [...new Set(wordsToQuery)];
-    
-    const wordPromises = uniqueWords.map(word => 
-      sendMessageAsync({ action: "jisho-lookup", word })
-        .then(res => res.success ? res.data : null)
-        .catch(() => null)
-    );
-    
-    const wordResults = await Promise.all(wordPromises);
-    currentWordDetailsList = wordResults.filter(Boolean);
+    // 2. Perform backoff segment mapping and lookups
+    const segments = await analyzeSentenceFlow(text);
 
     // Reset sense mapping
     wordActiveSenseMap = {};
@@ -74,7 +57,6 @@ async function performAnalysis() {
     });
 
     // 3. Render Card
-    currentSegments = segments;
     renderPopupCard(segments, sentenceResult.data);
     
     // Toggle view visibility
@@ -732,7 +714,7 @@ function getWordInflection(text, type) {
   return "";
 }
 
-function mergeSegments(rawSegments) {
+function mergeSegments(rawSegments, blacklist = []) {
   const particles = ['amp', 'は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'amp', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た', 'だ', 'です', 'である', 'にぇ', 'ね', 'よ', 'な', 'さ', 'わ', 'ぞ', 'ぜ'];
   
   let merged = [];
@@ -764,8 +746,11 @@ function mergeSegments(rawSegments) {
         const nextHasHiragana = /[\u3040-\u309F]/.test(nextText);
         
         let shouldMerge = false;
+        const potentialMerge = currentText + nextText;
         
-        if (isConjugation) {
+        if (blacklist.includes(potentialMerge)) {
+          shouldMerge = false;
+        } else if (isConjugation) {
           shouldMerge = true;
         } else if (currentHasKanji && nextHasKanji) {
           shouldMerge = true; // Kanji + Kanji (e.g. 夏 + 祭り)
@@ -791,4 +776,66 @@ function mergeSegments(rawSegments) {
     i++;
   }
   return merged;
+}
+
+async function analyzeSentenceFlow(text) {
+  const segmenter = new Intl.Segmenter("ja-JP", { granularity: "word" });
+  const rawSegments = Array.from(segmenter.segment(text));
+  
+  let blacklist = [];
+  let segments = [];
+  let wordResults = {};
+  let passes = 0;
+  
+  while (passes < 3) {
+    segments = mergeSegments(rawSegments, blacklist);
+    const uniqueWords = [...new Set(segments.filter(s => s.isWordLike && isJapanese(s.segment)).map(s => s.segment))];
+    
+    const wordsToQuery = uniqueWords.filter(w => !wordResults[w]);
+    if (wordsToQuery.length > 0) {
+      const promises = wordsToQuery.map(word => 
+        sendMessageAsync({ action: "jisho-lookup", word })
+          .then(res => res.success ? res.data : null)
+          .catch(() => null)
+      );
+      const results = await Promise.all(promises);
+      wordsToQuery.forEach((w, idx) => {
+        wordResults[w] = results[idx];
+      });
+    }
+    
+    let newBlacklistAdded = false;
+    uniqueWords.forEach(word => {
+      const detail = wordResults[word];
+      if (word.length > 3 && !isExactMatch(word, detail) && !blacklist.includes(word)) {
+        blacklist.push(word);
+        newBlacklistAdded = true;
+      }
+    });
+    
+    if (!newBlacklistAdded) {
+      break;
+    }
+    passes++;
+  }
+  
+  currentSegments = segments;
+  currentWordDetailsList = segments
+    .filter(s => s.isWordLike && isJapanese(s.segment))
+    .map(s => wordResults[s.segment])
+    .filter(Boolean);
+    
+  // Deduplicate detail entries
+  currentWordDetailsList = Array.from(new Map(currentWordDetailsList.map(item => [item.word, item])).values());
+  
+  return segments;
+}
+
+function isExactMatch(word, detail) {
+  if (!detail) return false;
+  if (detail.word === word || detail.reading === word) return true;
+  if (detail.japanese) {
+    return detail.japanese.some(j => j.word === word || j.reading === word);
+  }
+  return false;
 }
