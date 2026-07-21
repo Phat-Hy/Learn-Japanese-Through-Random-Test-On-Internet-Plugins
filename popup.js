@@ -711,7 +711,7 @@ function getWordInflection(text, type) {
 }
 
 function mergeSegments(rawSegments) {
-  const particles = ['amp', 'は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た'];
+  const particles = ['amp', 'は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'amp', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た'];
   
   let merged = [];
   let i = 0;
@@ -724,10 +724,38 @@ function mergeSegments(rawSegments) {
         const nextSeg = rawSegments[i + 1];
         const nextText = nextSeg.segment;
         
-        if (nextSeg.isWordLike && !particles.includes(nextText)) {
-          currentText += nextText;
-          i++;
-        } else if (nextSeg.isWordLike && (nextText === 'て' || nextText === 'で' || nextText === 'た' || nextText === 'だ' || nextText === 'ます' || nextText === 'ました' || nextText === 'ませ' || nextText === 'ん' || nextText === 'よう' || nextText === 'ましょう')) {
+        if (!nextSeg.isWordLike) {
+          break;
+        }
+        
+        // Verb/Adjective suffix and conjugation endings
+        const conjugationEndings = ['て', 'で', 'た', 'だ', 'ます', 'ました', 'ませ', 'ん', 'よう', 'ましょう', 'たら', 'だら', 'ば', 'すれば', 'ければ'];
+        const isConjugation = conjugationEndings.includes(nextText);
+        
+        // Script detection
+        const currentHasKanji = /[\u4E00-\u9FAF]/.test(currentText);
+        const currentHasKatakana = /[\u30A0-\u30FF]/.test(currentText);
+        const currentHasLatin = /[a-zA-Z]/.test(currentText);
+        
+        const nextHasKanji = /[\u4E00-\u9FAF]/.test(nextText);
+        const nextHasKatakana = /[\u30A0-\u30FF]/.test(nextText);
+        const nextHasHiragana = /[\u3040-\u309F]/.test(nextText);
+        
+        let shouldMerge = false;
+        
+        if (isConjugation) {
+          shouldMerge = true;
+        } else if (currentHasKanji && nextHasKanji) {
+          shouldMerge = true; // Kanji + Kanji (e.g. 夏 + 祭り)
+        } else if (currentHasKanji && nextHasHiragana && !particles.includes(nextText)) {
+          shouldMerge = true; // Kanji + Hiragana okurigana (e.g. 食 + べ)
+        } else if (currentHasKatakana && nextHasKatakana) {
+          shouldMerge = true; // Katakana + Katakana (e.g. チル + ファーム)
+        } else if (currentHasLatin && (nextText === 'し' || nextText === 'する' || nextText === 'して' || nextText === 'した' || nextText === 'します')) {
+          shouldMerge = true; // Latin + Japanese verb helper (e.g. GET + します)
+        }
+        
+        if (shouldMerge) {
           currentText += nextText;
           i++;
         } else {
