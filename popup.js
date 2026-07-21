@@ -49,7 +49,8 @@ async function performAnalysis() {
     
     // 2. Segment
     const segmenter = new Intl.Segmenter("ja-JP", { granularity: "word" });
-    const segments = Array.from(segmenter.segment(text));
+    const rawSegments = Array.from(segmenter.segment(text));
+    const segments = mergeSegments(rawSegments);
     
     // Query Jisho for Japanese words
     const wordsToQuery = segments
@@ -707,4 +708,37 @@ function getWordInflection(text, type) {
   }
   
   return "";
+}
+
+function mergeSegments(rawSegments) {
+  const particles = ['amp', 'は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た'];
+  
+  let merged = [];
+  let i = 0;
+  while (i < rawSegments.length) {
+    let currentSeg = { ...rawSegments[i] };
+    let currentText = currentSeg.segment;
+    
+    if (currentSeg.isWordLike && !particles.includes(currentText)) {
+      while (i + 1 < rawSegments.length) {
+        const nextSeg = rawSegments[i + 1];
+        const nextText = nextSeg.segment;
+        
+        if (nextSeg.isWordLike && !particles.includes(nextText)) {
+          currentText += nextText;
+          i++;
+        } else if (nextSeg.isWordLike && (nextText === 'て' || nextText === 'で' || nextText === 'た' || nextText === 'だ' || nextText === 'ます' || nextText === 'ました' || nextText === 'ませ' || nextText === 'ん' || nextText === 'よう' || nextText === 'ましょう')) {
+          currentText += nextText;
+          i++;
+        } else {
+          break;
+        }
+      }
+      currentSeg.segment = currentText;
+    }
+    
+    merged.push(currentSeg);
+    i++;
+  }
+  return merged;
 }
