@@ -304,7 +304,7 @@ function renderCard(wrapper, segments, sentenceData) {
     const showRomaji = settings.showRomaji !== false;
     const romajiClass = showRomaji ? "" : "hide-romaji";
 
-    const grammarPatterns = detectGrammar(sentenceData.text || "");
+    const grammarPatterns = detectGrammar(sentenceData.originalText || "");
     let grammarHTML = "";
     if (grammarPatterns.length > 0) {
       let itemsHTML = grammarPatterns.map(p => `
