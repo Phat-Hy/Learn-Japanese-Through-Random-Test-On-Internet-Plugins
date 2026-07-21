@@ -304,6 +304,21 @@ function renderCard(wrapper, segments, sentenceData) {
     const showRomaji = settings.showRomaji !== false;
     const romajiClass = showRomaji ? "" : "hide-romaji";
 
+    const grammarPatterns = detectGrammar(sentenceData.text || "");
+    let grammarHTML = "";
+    if (grammarPatterns.length > 0) {
+      let itemsHTML = grammarPatterns.map(p => `
+        <div class="grammar-item">
+          <span class="grammar-pattern">${p.pattern}</span>
+          <span class="grammar-desc">${p.desc}</span>
+        </div>
+      `).join("");
+      grammarHTML = `
+        <div class="section-title">Grammar Patterns</div>
+        <div class="grammar-list">${itemsHTML}</div>
+      `;
+    }
+
     wrapper.innerHTML = `
       <div class="glass-card">
         <div class="japanese-display ${romajiClass}">${annotatedSentence}</div>
@@ -320,6 +335,8 @@ function renderCard(wrapper, segments, sentenceData) {
           <div class="section-title">Vocabulary</div>
           <div class="word-list">${wordListHTML}</div>
         ` : ""}
+        
+        ${grammarHTML}
         
         <div class="translation-box">
           <div class="section-title" style="color: rgba(255,255,255,0.7); margin-bottom: 2px;">Translation</div>
@@ -608,4 +625,27 @@ function getWordClass(word, posString) {
   if (pos.includes('adjective')) return 'pos-adjective';
   if (pos.includes('adverb') || pos.includes('conjunction')) return 'pos-adverb';
   return 'pos-other';
+}
+
+function detectGrammar(text) {
+  if (!text) return [];
+  const rules = [
+    { pattern: '〜ている', desc: 'Present Continuous / State (-ing)', regex: /(て|で)(いる|います|いらっしゃる)/ },
+    { pattern: '〜たい', desc: 'Desire / Want to do', regex: /([きしちにひみりいぎじびぴ]たい|たいです)/ },
+    { pattern: '〜なければならない', desc: 'Must do / Obligation', regex: /(なければ(ならない|なりません)|ないといけない|なきゃ|なくちゃ)/ },
+    { pattern: '〜ほうがいい', desc: 'Advice / Had better do', regex: /(ほう|方)が(いい|良い)/ },
+    { pattern: '〜たら / 〜ば', desc: 'Conditional (If / When)', regex: /(たら|すれば|ければ|なければ|なら)/ },
+    { pattern: '〜ことができる', desc: 'Ability / Can do', regex: /(こと|事)が(できる|出来)/ },
+    { pattern: '〜たことがある', desc: 'Past Experience (Have done)', regex: /(た|だ)(こと|事)が(ある|あります)/ },
+    { pattern: '〜ながら', desc: 'Simultaneous Action (While doing)', regex: /\w*ながら/ },
+    { pattern: '〜すぎる', desc: 'Excess / Too much', regex: /すぎる|すぎます/ },
+    { pattern: '〜てみる', desc: 'Try to do (to see)', regex: /(て|で)みる/ },
+    { pattern: '〜ておく', desc: 'Preparation for future', regex: /(て|で)おく/ },
+    { pattern: '〜だろう / 〜でしょう', desc: 'Conjecture / Probably', regex: /だろう|でしょう|かもしれない|かも/ },
+    { pattern: '〜つもり', desc: 'Intention / Plan', regex: /つもり/ },
+    { pattern: '〜やすい / 〜にくい', desc: 'Easy / Hard to do', regex: /やすい|にくい/ },
+    { pattern: '〜んです', desc: 'Explanatory / Emphasis', regex: /(ん|の)(です|だ|なのだ)/ }
+  ];
+  
+  return rules.filter(r => r.regex.test(text));
 }

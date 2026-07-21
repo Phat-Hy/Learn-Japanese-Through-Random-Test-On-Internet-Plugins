@@ -460,3 +460,38 @@
 .legend-item.pos-particle::before { background: var(--color-particle); }
 .legend-item.pos-adjective::before { background: var(--color-adjective); }
 .legend-item.pos-adverb::before { background: var(--color-adverb); }
+
+/* Section: Grammar Patterns */
+.grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.grammar-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.grammar-pattern {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.grammar-desc {
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: 1.3;
+}
