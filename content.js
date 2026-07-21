@@ -915,7 +915,13 @@ async function analyzeSentenceFlow(text) {
       segments
         .filter(s => s.isWordLike && isJapanese(s.segment))
         .map(s => s.segment)
-        .filter(w => !PARTICLES.includes(w) && !['です', 'だ', 'である', 'でした', 'だった'].includes(w))
+        .filter(w => {
+          if (PARTICLES.includes(w)) return false;
+          if (['です', 'だ', 'である', 'でした', 'だった'].includes(w)) return false;
+          // Skip single-character Hiragana or Katakana (reduces Jisho lookups for split junk)
+          if (w.length === 1 && /^[\u3040-\u309F\u30A0-\u30FF]$/.test(w)) return false;
+          return true;
+        })
     )];
     
     const wordsToQuery = uniqueWords.filter(w => !wordResults[w]);

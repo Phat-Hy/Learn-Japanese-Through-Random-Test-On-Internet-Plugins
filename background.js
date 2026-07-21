@@ -56,8 +56,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 async function analyzeSentence(text) {
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&dt=rm&q=${encodeURIComponent(text)}`;
-  
-  const response = await fetch(url);
+  const response = await fetchWithTimeout(url, { timeout: 3000 });
   if (!response.ok) {
     throw new Error(`Google Translate API failed with status ${response.status}`);
   }
@@ -107,9 +106,9 @@ async function jishoLookup(word) {
     return cached;
   }
   
-  // Fetch from Jisho API
+  // Fetch from Jisho API with timeout
   const url = `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`;
-  const response = await fetch(url);
+  const response = await fetchWithTimeout(url, { timeout: 1500 });
   if (!response.ok) {
     throw new Error(`Jisho API failed with status ${response.status}`);
   }
@@ -163,4 +162,21 @@ async function jishoLookup(word) {
   }
   
   return resultData;
+}
+
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 1500 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
 }
