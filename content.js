@@ -635,13 +635,36 @@ function getWordClass(word, posString) {
   if (particles.includes(word)) {
     return 'pos-particle';
   }
-  if (!posString) return 'pos-other';
-  const pos = posString.toLowerCase();
-  if (pos.includes('particle')) return 'pos-particle';
-  if (pos.includes('noun')) return 'pos-noun';
-  if (pos.includes('verb')) return 'pos-verb';
-  if (pos.includes('adjective')) return 'pos-adjective';
-  if (pos.includes('adverb') || pos.includes('conjunction')) return 'pos-adverb';
+  
+  // Copulas are handled directly by formula generator
+  const copulas = ['です', 'だ', 'である', 'でした', 'だった'];
+  if (copulas.includes(word)) {
+    return 'pos-other';
+  }
+  
+  // If Jisho returned POS classification, use it
+  if (posString) {
+    const pos = posString.toLowerCase();
+    if (pos.includes('particle')) return 'pos-particle';
+    if (pos.includes('noun')) return 'pos-noun';
+    if (pos.includes('verb')) return 'pos-verb';
+    if (pos.includes('adjective')) return 'pos-adjective';
+    if (pos.includes('adverb') || pos.includes('conjunction')) return 'pos-adverb';
+  }
+  
+  // Fallback heuristic for verb conjugations
+  const verbEndings = ['て', 'で', 'たい', 'た', 'だ', 'ます', 'ました', 'ません', 'ましょう', 'させる', 'される', 'せる', 'れる', 'なきゃ', 'なくちゃ', 'れば'];
+  for (const ending of verbEndings) {
+    if (word.length > 1 && word.endsWith(ending)) {
+      return 'pos-verb';
+    }
+  }
+  
+  // Fallback heuristic for adjectives
+  if (word.length > 1 && (word.endsWith('しい') || word.endsWith('かった') || word.endsWith('ければ') || word.endsWith('くない'))) {
+    return 'pos-adjective';
+  }
+  
   return 'pos-other';
 }
 
