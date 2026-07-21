@@ -734,8 +734,14 @@ function detectGrammar(text, formula) {
 function generateSentenceFormula(segments, detailsList) {
   let parts = [];
   let prevType = "";
+  let skipNext = false;
   
-  segments.forEach(seg => {
+  segments.forEach((seg, idx) => {
+    if (skipNext) {
+      skipNext = false;
+      return;
+    }
+    
     const text = seg.segment;
     if (!seg.isWordLike || !isJapanese(text)) return;
     
@@ -764,11 +770,27 @@ function generateSentenceFormula(segments, detailsList) {
     let type = "";
     if (wordClass === 'pos-noun') type = "N";
     else if (wordClass === 'pos-verb') {
-      const infl = getWordInflection(text, "V");
+      let infl = getWordInflection(text, "V");
+      if (!infl && idx + 1 < segments.length) {
+        const nextText = segments[idx + 1].segment;
+        const testInfl = getWordInflection(text + nextText, "V");
+        if (testInfl) {
+          infl = testInfl;
+          skipNext = true;
+        }
+      }
       type = "V" + (infl ? " " + infl : "");
     }
     else if (wordClass === 'pos-adjective') {
-      const infl = getWordInflection(text, "Adj");
+      let infl = getWordInflection(text, "Adj");
+      if (!infl && idx + 1 < segments.length) {
+        const nextText = segments[idx + 1].segment;
+        const testInfl = getWordInflection(text + nextText, "Adj");
+        if (testInfl) {
+          infl = testInfl;
+          skipNext = true;
+        }
+      }
       type = "Adj" + (infl ? " " + infl : "");
     }
     else if (wordClass === 'pos-adverb') type = "Adv";
@@ -847,7 +869,7 @@ function mergeSegments(rawSegments) {
         }
         
         // Verb/Adjective suffix and conjugation endings
-        const conjugationEndings = ['て', 'で', 'た', 'だ', 'ます', 'ました', 'ませ', 'ん', 'よう', 'ましょう', 'たら', 'だら', 'ば', 'すれば', 'ければ'];
+        const conjugationEndings = ['ます', 'ました', 'ませ', 'ん', 'よう', 'ましょう', 'たら', 'だら', 'ば', 'すれば', 'ければ'];
         const isConjugation = conjugationEndings.includes(nextText);
         
         // Script detection
