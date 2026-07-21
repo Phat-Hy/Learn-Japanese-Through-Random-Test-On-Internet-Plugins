@@ -111,6 +111,9 @@ function sendMessageAsync(msg) {
 /**
  * Renders the analysis breakdown layout
  */
+/**
+ * Renders the analysis breakdown layout
+ */
 function renderPopupCard(segments, sentenceData) {
   // Reconstruct Japanese sentence with stacked word columns
   let annotatedSentence = "";
@@ -118,6 +121,9 @@ function renderPopupCard(segments, sentenceData) {
     const text = seg.segment;
     if (seg.isWordLike && isJapanese(text)) {
       const detail = currentWordDetailsList.find(d => d.word === text);
+      const activeSenseIdx = wordActiveSenseMap[text] || 0;
+      const pos = (detail && detail.senses && detail.senses[activeSenseIdx]) ? detail.senses[activeSenseIdx].pos : "";
+      const posClass = getWordClass(text, pos);
       
       const hasKanji = /[\u4E00-\u9FAF]/.test(text);
       const furigana = (hasKanji && detail && detail.reading) ? detail.reading : "";
@@ -126,7 +132,7 @@ function renderPopupCard(segments, sentenceData) {
       const romaji = kanaToRomaji(wordReading);
       
       annotatedSentence += `
-        <span class="ja-word-container" data-word="${text}">
+        <span class="ja-word-container ${posClass}" data-word="${text}">
           <span class="furigana-line">${furigana}</span>
           <span class="spelling-line">${text}</span>
           <span class="romaji-line">${romaji}</span>
@@ -152,6 +158,7 @@ function renderPopupCard(segments, sentenceData) {
     const definitionText = activeSense.definitions.join("; ");
     const posBadge = activeSense.pos ? `<span class="word-pos">${activeSense.pos}</span>` : "";
     const readingText = detail.reading ? `<span class="word-reading">(${detail.reading})</span>` : "";
+    const posClass = getWordClass(detail.word, activeSense.pos);
     
     const hasMultiple = detail.senses.length > 1;
     const selectorIndicator = hasMultiple 
@@ -159,7 +166,7 @@ function renderPopupCard(segments, sentenceData) {
       : "";
 
     wordListHTML += `
-      <div class="word-item" data-word="${detail.word}">
+      <div class="word-item ${posClass}" data-word="${detail.word}">
         <div class="word-header">
           <div>
             <span class="word-spelling">${detail.dictionaryWord}</span>
@@ -183,6 +190,14 @@ function renderPopupCard(segments, sentenceData) {
         <a id="back-to-input" style="color:var(--text-secondary); text-decoration:none; font-size:12px; margin-bottom:8px; display:inline-block; cursor:pointer;">← Analyze another text</a>
         
         <div class="japanese-display ${romajiClass}">${annotatedSentence}</div>
+        
+        <div class="grammar-legend">
+          <span class="legend-item pos-noun">Noun</span>
+          <span class="legend-item pos-verb">Verb</span>
+          <span class="legend-item pos-particle">Particle</span>
+          <span class="legend-item pos-adjective">Adjective</span>
+          <span class="legend-item pos-adverb">Adverb</span>
+        </div>
         
         ${currentWordDetailsList.length > 0 ? `
           <div class="section-title">Vocabulary</div>
@@ -353,6 +368,20 @@ function showPopupDrawer(wordDetail) {
           }
         }
         
+        // Update POS color classes dynamically
+        const newPosClass = getWordClass(wordDetail.word, activeSense.pos);
+        
+        // Update original sentence word spelling color
+        const textSpan = cardHolder.querySelector(`.ja-word-container[data-word="${wordDetail.word}"]`);
+        if (textSpan) {
+          textSpan.classList.remove('pos-noun', 'pos-verb', 'pos-particle', 'pos-adjective', 'pos-adverb', 'pos-other');
+          textSpan.classList.add(newPosClass);
+        }
+        
+        // Update card POS classes
+        wordCard.classList.remove('pos-noun', 'pos-verb', 'pos-particle', 'pos-adjective', 'pos-adverb', 'pos-other');
+        wordCard.classList.add(newPosClass);
+        
         const indicator = wordCard.querySelector(".sense-indicator");
         if (indicator) {
           indicator.textContent = `⇅ Alternate meaning (${index + 1} of ${wordDetail.senses.length})`;
@@ -446,4 +475,19 @@ function kanaToRomaji(kanaText) {
   if (romaji === 'he' && (kanaText === 'へ' || kanaText === 'ヘ')) romaji = 'e';
   
   return romaji;
+}
+
+function getWordClass(word, posString) {
+  const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など'];
+  if (particles.includes(word)) {
+    return 'pos-particle';
+  }
+  if (!posString) return 'pos-other';
+  const pos = posString.toLowerCase();
+  if (pos.includes('particle')) return 'pos-particle';
+  if (pos.includes('noun')) return 'pos-noun';
+  if (pos.includes('verb')) return 'pos-verb';
+  if (pos.includes('adjective')) return 'pos-adjective';
+  if (pos.includes('adverb') || pos.includes('conjunction')) return 'pos-adverb';
+  return 'pos-other';
 }

@@ -13,6 +13,13 @@
   --color-accent: #ef4444; /* Crimson Red for Japan/Study theme */
   --color-accent-rgb: 239, 68, 68;
   --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  
+  /* Grammar POS Colors */
+  --color-noun: #38bdf8;       /* soft blue */
+  --color-verb: #fda4af;       /* soft rose */
+  --color-particle: #fde047;   /* soft gold */
+  --color-adjective: #4ade80;  /* soft mint */
+  --color-adverb: #c084fc;     /* soft lavender */
 }
 
 /* Floating Trigger Button */
@@ -401,3 +408,55 @@
   0% { transform: translateX(-10px); opacity: 0; }
   100% { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================
+   GRAMMAR & STRUCTURAL COLORING
+   ========================================== */
+
+/* Word containers in original sentence */
+.ja-word-container.pos-noun .spelling-line { color: var(--color-noun); }
+.ja-word-container.pos-verb .spelling-line { color: var(--color-verb); }
+.ja-word-container.pos-particle .spelling-line { color: var(--color-particle); }
+.ja-word-container.pos-adjective .spelling-line { color: var(--color-adjective); }
+.ja-word-container.pos-adverb .spelling-line { color: var(--color-adverb); }
+
+/* Vocabulary POS badges in card list */
+.word-item.pos-noun .word-pos { background: rgba(56, 189, 248, 0.15); color: var(--color-noun); }
+.word-item.pos-verb .word-pos { background: rgba(253, 164, 175, 0.15); color: var(--color-verb); }
+.word-item.pos-particle .word-pos { background: rgba(253, 224, 71, 0.15); color: var(--color-particle); }
+.word-item.pos-adjective .word-pos { background: rgba(74, 222, 128, 0.15); color: var(--color-adjective); }
+.word-item.pos-adverb .word-pos { background: rgba(192, 132, 252, 0.15); color: var(--color-adverb); }
+
+/* Grammar Legend */
+.grammar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: -4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  user-select: none;
+  padding-bottom: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+}
+
+.legend-item::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-item.pos-noun::before { background: var(--color-noun); }
+.legend-item.pos-verb::before { background: var(--color-verb); }
+.legend-item.pos-particle::before { background: var(--color-particle); }
+.legend-item.pos-adjective::before { background: var(--color-adjective); }
+.legend-item.pos-adverb::before { background: var(--color-adverb); }
