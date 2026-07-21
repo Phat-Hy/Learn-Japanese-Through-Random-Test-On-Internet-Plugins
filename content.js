@@ -951,9 +951,5 @@ async function analyzeSentenceFlow(text) {
 
 function isExactMatch(word, detail) {
   if (!detail) return false;
-  if (detail.word === word || detail.reading === word) return true;
-  if (detail.japanese) {
-    return detail.japanese.some(j => j.word === word || j.reading === word);
-  }
-  return false;
+  return detail.dictionaryWord === word || detail.reading === word;
 }
