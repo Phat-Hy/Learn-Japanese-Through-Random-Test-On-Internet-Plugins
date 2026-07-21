@@ -306,7 +306,8 @@ function renderCard(wrapper, segments, sentenceData) {
     const showRomaji = settings.showRomaji !== false;
     const romajiClass = showRomaji ? "" : "hide-romaji";
 
-    const grammarPatterns = detectGrammar(sentenceData.originalText || "");
+    const sentenceFormula = generateSentenceFormula(segments, currentWordDetailsList);
+    const grammarPatterns = detectGrammar(sentenceData.originalText || "", sentenceFormula);
     let grammarHTML = "";
     if (grammarPatterns.length > 0) {
       let itemsHTML = grammarPatterns.map(p => `
@@ -323,8 +324,6 @@ function renderCard(wrapper, segments, sentenceData) {
         <div class="grammar-list">${itemsHTML}</div>
       `;
     }
-
-    const sentenceFormula = generateSentenceFormula(segments, currentWordDetailsList);
 
     wrapper.innerHTML = `
       <div class="glass-card">
@@ -668,7 +667,7 @@ function getWordClass(word, posString) {
   return 'pos-other';
 }
 
-function detectGrammar(text) {
+function detectGrammar(text, formula) {
   if (!text) return [];
   const rules = [
     { pattern: '〜ている', desc: 'Present Continuous / State (-ing)', formula: 'Verb [Te-form] + いる', regex: /(て|で)(いる|います|いらっしゃる)/ },
@@ -688,7 +687,40 @@ function detectGrammar(text) {
     { pattern: '〜んです', desc: 'Explanatory / Emphasis', formula: 'Plain form + んです (Noun/Na-Adj + なんです)', regex: /(ん|の)(です|だ|なのだ)/ }
   ];
   
-  return rules.filter(r => r.regex.test(text));
+  let results = rules.filter(r => r.regex.test(text));
+  
+  if (formula) {
+    if (formula.includes('[Te-form]') && !results.some(r => r.pattern === '〜て / 〜で')) {
+      results.push({
+        pattern: '〜て / 〜で',
+        desc: 'Te-form action linker (connects verbs, sequence, reason)',
+        formula: 'Verb [Te-form]'
+      });
+    }
+    if (formula.includes('[Past]') && !results.some(r => r.pattern === '〜た / 〜だ')) {
+      results.push({
+        pattern: '〜た / 〜だ',
+        desc: 'Past Tense (indicates completed action or past state)',
+        formula: 'Verb/Adj [Past-form]'
+      });
+    }
+    if (formula.includes('[Conditional]') && !results.some(r => r.pattern === '〜たら / 〜ば')) {
+      results.push({
+        pattern: '〜たら / 〜ば',
+        desc: 'Conditional form (indicates "If" / "When" condition)',
+        formula: 'Verb/Adj [Conditional-form]'
+      });
+    }
+    if (formula.includes('[Negative]') && !results.some(r => r.pattern === '〜ない / 〜ません')) {
+      results.push({
+        pattern: '〜ない / 〜ません',
+        desc: 'Negative form (indicates negation / "Not")',
+        formula: 'Verb/Adj [Negative-form]'
+      });
+    }
+  }
+  
+  return results;
 }
 
 function generateSentenceFormula(segments, detailsList) {
