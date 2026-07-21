@@ -846,11 +846,16 @@ function isExactMatch(word, detail) {
   
   // If it's a verb/adjective conjugation (stem matches)
   if (dictWord && dictWord.length > 1) {
-    const stem = dictWord.slice(0, -1);
+    const endsInKanji = /[\u4E00-\u9FAF]/.test(dictWord[dictWord.length - 1]);
+    const stem = endsInKanji ? dictWord : dictWord.slice(0, -1);
+    
     if (word.startsWith(stem)) {
       const pos = detail.senses && detail.senses[0] ? detail.senses[0].pos.toLowerCase() : "";
       if (pos.includes('verb') || pos.includes('adjective')) {
-        return true;
+        const suffix = word.slice(stem.length);
+        if (!suffix || /^[\u3040-\u309F\u30FC]+$/.test(suffix)) {
+          return true;
+        }
       }
     }
   }
