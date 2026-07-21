@@ -951,5 +951,20 @@ async function analyzeSentenceFlow(text) {
 
 function isExactMatch(word, detail) {
   if (!detail) return false;
-  return detail.dictionaryWord === word || detail.reading === word;
+  
+  const dictWord = detail.dictionaryWord;
+  if (dictWord === word || detail.reading === word) return true;
+  
+  // If it's a verb/adjective conjugation (stem matches)
+  if (dictWord && dictWord.length > 1) {
+    const stem = dictWord.slice(0, -1);
+    if (word.startsWith(stem)) {
+      const pos = detail.senses && detail.senses[0] ? detail.senses[0].pos.toLowerCase() : "";
+      if (pos.includes('verb') || pos.includes('adjective')) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
 }
