@@ -1,0 +1,403 @@
+/* content.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:host {
+  --font-sans: 'Outfit', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --bg-glass: rgba(15, 23, 42, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --border-focus: rgba(239, 68, 68, 0.4);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --color-accent: #ef4444; /* Crimson Red for Japan/Study theme */
+  --color-accent-rgb: 239, 68, 68;
+  --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* Floating Trigger Button */
+.selection-trigger {
+  position: absolute;
+  z-index: 100000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: triggerPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+}
+
+.selection-trigger:hover {
+  transform: scale(1.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(var(--color-accent-rgb), 0.5);
+}
+
+.selection-trigger svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Main Container to position Card and Popout */
+.overlay-wrapper {
+  position: absolute;
+  z-index: 100000;
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+  font-family: var(--font-sans);
+}
+
+.overlay-wrapper * {
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+/* Base Glass Card */
+.glass-card {
+  width: 480px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  padding: 20px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-premium);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: cardFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 520px;
+  overflow: hidden;
+}
+
+/* Custom Scrollbars */
+.word-list::-webkit-scrollbar,
+.side-drawer::-webkit-scrollbar {
+  width: 6px;
+}
+.word-list::-webkit-scrollbar-track,
+.side-drawer::-webkit-scrollbar-track {
+  background: transparent;
+}
+.word-list::-webkit-scrollbar-thumb,
+.side-drawer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.word-list::-webkit-scrollbar-thumb:hover,
+.side-drawer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Section: Japanese Annotated Text */
+.japanese-display {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.japanese-display.hide-romaji .romaji-line {
+  display: none;
+}
+
+.ja-word-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  vertical-align: bottom;
+  border-radius: 6px;
+  padding: 4px 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ja-word-container.highlighted,
+.ja-word-container:hover {
+  background: rgba(var(--color-accent-rgb), 0.15);
+  box-shadow: 0 0 0 1px rgba(var(--color-accent-rgb), 0.3);
+}
+
+.furigana-line {
+  font-size: 11px;
+  height: 14px;
+  color: var(--text-secondary);
+  line-height: 1;
+  margin-bottom: 3px;
+  font-weight: 400;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.spelling-line {
+  font-size: 26px; /* Larger Japanese spelling font size */
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+.romaji-line {
+  font-size: 11px;
+  height: 14px;
+  color: var(--text-secondary);
+  line-height: 1;
+  margin-top: 5px;
+  font-style: italic;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.ja-word-container.punctuation .spelling-line {
+  font-size: 26px;
+  color: var(--text-secondary);
+}
+
+/* Section: Romaji sentence transliteration (Hidden as Romaji is now inline) */
+.romaji-display {
+  display: none;
+}
+
+/* Section: Word meanings title */
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Section: Dictionary List */
+.word-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 240px;
+  padding-right: 6px;
+  margin-right: -4px;
+}
+
+.word-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.word-item:hover,
+.word-item.highlighted {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.word-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.word-spelling {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.word-reading {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.word-pos {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.word-definition {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Sense override indicator */
+.sense-indicator {
+  font-size: 10px;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Section: Translation Card */
+.translation-box {
+  background: rgba(var(--color-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--color-accent-rgb), 0.15);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.translation-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+/* Option A: Side Popout Drawer */
+.side-drawer {
+  width: 280px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  padding: 20px;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-premium);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.drawer-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.drawer-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.drawer-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+.sense-option {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sense-option:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.sense-option.active {
+  border-color: var(--color-accent);
+  background: rgba(var(--color-accent-rgb), 0.05);
+}
+
+.sense-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sense-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.sense-check {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sense-option.active .sense-check {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.sense-option.active .sense-check::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.sense-option-pos {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.sense-option-definitions {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+/* Animations */
+@keyframes triggerPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cardFadeIn {
+  0% { transform: translateY(10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes drawerSlideIn {
+  0% { transform: translateX(-10px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
