@@ -138,6 +138,15 @@ function renderPopupCard(segments, sentenceData) {
   // Render vocabulary dictionary list
   let wordListHTML = "";
   currentWordDetailsList.forEach(detail => {
+    if (detail && !detail.senses) {
+      detail.senses = [
+        {
+          pos: detail.pos || "Unknown",
+          definitions: detail.definitions || ["No translation found"]
+        }
+      ];
+    }
+    
     const activeSenseIdx = wordActiveSenseMap[detail.word] || 0;
     const activeSense = detail.senses[activeSenseIdx] || { pos: "Unknown", definitions: ["No definitions"] };
     
