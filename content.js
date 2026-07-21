@@ -309,7 +309,10 @@ function renderCard(wrapper, segments, sentenceData) {
     if (grammarPatterns.length > 0) {
       let itemsHTML = grammarPatterns.map(p => `
         <div class="grammar-item">
-          <span class="grammar-pattern">${p.pattern}</span>
+          <div class="grammar-pattern-block">
+            <span class="grammar-pattern">${p.pattern}</span>
+            <div class="grammar-formula">${p.formula}</div>
+          </div>
           <span class="grammar-desc">${p.desc}</span>
         </div>
       `).join("");
@@ -630,21 +633,21 @@ function getWordClass(word, posString) {
 function detectGrammar(text) {
   if (!text) return [];
   const rules = [
-    { pattern: '〜ている', desc: 'Present Continuous / State (-ing)', regex: /(て|で)(いる|います|いらっしゃる)/ },
-    { pattern: '〜たい', desc: 'Desire / Want to do', regex: /([きしちにひみりいぎじびぴ]たい|たいです)/ },
-    { pattern: '〜なければならない', desc: 'Must do / Obligation', regex: /(なければ(ならない|なりません)|ないといけない|なきゃ|なくちゃ)/ },
-    { pattern: '〜ほうがいい', desc: 'Advice / Had better do', regex: /(ほう|方)が(いい|良い)/ },
-    { pattern: '〜たら / 〜ば', desc: 'Conditional (If / When)', regex: /(たら|すれば|ければ|なければ|なら)/ },
-    { pattern: '〜ことができる', desc: 'Ability / Can do', regex: /(こと|事)が(できる|出来)/ },
-    { pattern: '〜たことがある', desc: 'Past Experience (Have done)', regex: /(た|だ)(こと|事)が(ある|あります)/ },
-    { pattern: '〜ながら', desc: 'Simultaneous Action (While doing)', regex: /\w*ながら/ },
-    { pattern: '〜すぎる', desc: 'Excess / Too much', regex: /すぎる|すぎます/ },
-    { pattern: '〜てみる', desc: 'Try to do (to see)', regex: /(て|で)みる/ },
-    { pattern: '〜ておく', desc: 'Preparation for future', regex: /(て|で)おく/ },
-    { pattern: '〜だろう / 〜でしょう', desc: 'Conjecture / Probably', regex: /だろう|でしょう|かもしれない|かも/ },
-    { pattern: '〜つもり', desc: 'Intention / Plan', regex: /つもり/ },
-    { pattern: '〜やすい / 〜にくい', desc: 'Easy / Hard to do', regex: /やすい|にくい/ },
-    { pattern: '〜んです', desc: 'Explanatory / Emphasis', regex: /(ん|の)(です|だ|なのだ)/ }
+    { pattern: '〜ている', desc: 'Present Continuous / State (-ing)', formula: 'Verb [Te-form] + いる', regex: /(て|で)(いる|います|いらっしゃる)/ },
+    { pattern: '〜たい', desc: 'Desire / Want to do', formula: 'Verb [Stem-form] + たい', regex: /([きしちにひみりいぎじびぴ]たい|たいです)/ },
+    { pattern: '〜なければならない', desc: 'Must do / Obligation', formula: 'Verb [Nai-form] (drop い) + ければならない', regex: /(なければ(ならない|なりません)|ないといけない|なきゃ|なくちゃ)/ },
+    { pattern: '〜ほうがいい', desc: 'Advice / Had better do', formula: 'Verb [Ta-form] + ほうがいい', regex: /(ほう|方)が(いい|良い)/ },
+    { pattern: '〜たら / 〜ば', desc: 'Conditional (If / When)', formula: 'Verb/Adj [Past/Conditional] + ら/ば', regex: /(たら|すれば|ければ|なければ|なら)/ },
+    { pattern: '〜ことができる', desc: 'Ability / Can do', formula: 'Verb [Dictionary-form] + ことができる', regex: /(こと|事)が(できる|出来)/ },
+    { pattern: '〜たことがある', desc: 'Past Experience (Have done)', formula: 'Verb [Ta-form] + ことがある', regex: /(た|だ)(こと|事)が(ある|あります)/ },
+    { pattern: '〜ながら', desc: 'Simultaneous Action (While doing)', formula: 'Verb [Stem-form] + ながら', regex: /\w*ながら/ },
+    { pattern: '〜すぎる', desc: 'Excess / Too much', formula: 'Verb [Stem] / Adj [no い/な] + すぎる', regex: /すぎる|すぎます/ },
+    { pattern: '〜てみる', desc: 'Try to do (to see)', formula: 'Verb [Te-form] + みる', regex: /(て|で)みる/ },
+    { pattern: '〜ておく', desc: 'Preparation for future', formula: 'Verb [Te-form] + おく', regex: /(て|で)おく/ },
+    { pattern: '〜だろう / 〜でしょう', desc: 'Conjecture / Probably', formula: 'Plain form / Noun / Adj + だろう', regex: /だろう|でしょう|かもしれない|かも/ },
+    { pattern: '〜つもり', desc: 'Intention / Plan', formula: 'Verb [Dict/Nai-form] + つもり', regex: /つもり/ },
+    { pattern: '〜やすい / 〜にくい', desc: 'Easy / Hard to do', formula: 'Verb [Stem-form] + やすい / にくい', regex: /やすい|にくい/ },
+    { pattern: '〜んです', desc: 'Explanatory / Emphasis', formula: 'Plain form + んです (Noun/Na-Adj + なんです)', regex: /(ん|の)(です|だ|なのだ)/ }
   ];
   
   return rules.filter(r => r.regex.test(text));

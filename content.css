@@ -480,6 +480,20 @@
   gap: 12px;
 }
 
+.grammar-pattern-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grammar-formula {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  padding-left: 2px;
+}
+
 .grammar-pattern {
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: 600;
