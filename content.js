@@ -987,6 +987,8 @@ function getReconstructedReading(word, detail) {
   const dictWord = detail.dictionaryWord;
   const reading = detail.reading || "";
   
+  if (dictWord === word) return reading;
+  
   if (dictWord && dictWord !== word && word.startsWith(dictWord)) {
     const suffix = word.slice(dictWord.length);
     let suffixReading = suffix;
