@@ -108,7 +108,7 @@ async function jishoLookup(word) {
   
   // Fetch from Jisho API with timeout
   const url = `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`;
-  const response = await fetchWithTimeout(url, { timeout: 1500 });
+  const response = await fetchWithTimeout(url, { timeout: 10000 });
   if (!response.ok) {
     throw new Error(`Jisho API failed with status ${response.status}`);
   }
@@ -165,7 +165,7 @@ async function jishoLookup(word) {
 }
 
 async function fetchWithTimeout(resource, options = {}) {
-  const { timeout = 1500 } = options;
+  const { timeout = 10000 } = options;
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
