@@ -924,7 +924,7 @@ async function analyzeSentenceFlow(text) {
     let newBlacklistAdded = false;
     uniqueWords.forEach(word => {
       const detail = wordResults[word];
-      if (word.length > 3 && !isExactMatch(word, detail) && !blacklist.includes(word)) {
+      if (word.length > 1 && !isExactMatch(word, detail) && !blacklist.includes(word)) {
         blacklist.push(word);
         newBlacklistAdded = true;
       }
