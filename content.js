@@ -229,10 +229,9 @@ function renderCard(wrapper, segments, sentenceData) {
       const posClass = getWordClass(text, pos);
       
       const hasKanji = /[\u4E00-\u9FAF]/.test(text);
-      const furigana = (hasKanji && detail && detail.reading) ? detail.reading : "";
-      
-      const wordReading = detail && detail.reading ? detail.reading : text;
+      const wordReading = getReconstructedReading(text, detail);
       const romaji = kanaToRomaji(wordReading);
+      const furigana = (hasKanji && detail) ? wordReading : "";
       
       annotatedSentence += `
         <span class="ja-word-container ${posClass}" data-word="${text}">
@@ -967,4 +966,27 @@ function isExactMatch(word, detail) {
   }
   
   return false;
+}
+
+function getReconstructedReading(word, detail) {
+  if (!detail) return word;
+  
+  const dictWord = detail.dictionaryWord;
+  const reading = detail.reading || "";
+  
+  if (dictWord && dictWord !== word && word.startsWith(dictWord)) {
+    const suffix = word.slice(dictWord.length);
+    return reading + suffix;
+  }
+  
+  if (dictWord && dictWord.length > 1) {
+    const stem = dictWord.slice(0, -1);
+    if (word.startsWith(stem)) {
+      const suffix = word.slice(stem.length);
+      const readingStem = reading.slice(0, -1);
+      return readingStem + suffix;
+    }
+  }
+  
+  return reading || word;
 }
