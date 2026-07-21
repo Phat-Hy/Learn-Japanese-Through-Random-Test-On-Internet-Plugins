@@ -795,15 +795,14 @@ async function analyzeSentenceFlow(text) {
     
     const wordsToQuery = uniqueWords.filter(w => !wordResults[w]);
     if (wordsToQuery.length > 0) {
-      const promises = wordsToQuery.map(word => 
-        sendMessageAsync({ action: "jisho-lookup", word })
-          .then(res => res.success ? res.data : null)
-          .catch(() => null)
-      );
-      const results = await Promise.all(promises);
-      wordsToQuery.forEach((w, idx) => {
-        wordResults[w] = results[idx];
-      });
+      try {
+        const res = await sendMessageAsync({ action: "jisho-lookup-batch", words: wordsToQuery });
+        if (res && res.success && res.data) {
+          Object.assign(wordResults, res.data);
+        }
+      } catch (err) {
+        console.error("Batch Jisho lookup failed:", err);
+      }
     }
     
     let newBlacklistAdded = false;

@@ -36,6 +36,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Keep the message channel open for async response
   }
+
+  if (request.action === "jisho-lookup-batch") {
+    Promise.all(request.words.map(w => jishoLookup(w).catch(() => null)))
+      .then(results => {
+        const responseData = {};
+        request.words.forEach((w, idx) => {
+          responseData[w] = results[idx];
+        });
+        sendResponse({ success: true, data: responseData });
+      })
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true; // Keep the message channel open for async response
+  }
 });
 
 /**
