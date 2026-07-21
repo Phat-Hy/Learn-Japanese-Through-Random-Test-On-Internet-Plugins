@@ -781,7 +781,8 @@ function mergeSegments(rawSegments, blacklist = []) {
 
 async function analyzeSentenceFlow(text) {
   const segmenter = new Intl.Segmenter("ja-JP", { granularity: "word" });
-  const rawSegments = Array.from(segmenter.segment(text));
+  let rawSegments = Array.from(segmenter.segment(text));
+  rawSegments = preprocessRawSegments(rawSegments);
   
   let blacklist = [];
   let segments = [];
@@ -891,4 +892,26 @@ function getReconstructedReading(word, detail) {
   }
   
   return reading || word;
+}
+
+function preprocessRawSegments(rawSegments) {
+  let processed = [];
+  for (let i = 0; i < rawSegments.length; i++) {
+    const seg = rawSegments[i];
+    
+    // Split "なお" or "なご" if followed by a Kanji segment
+    if (seg.isWordLike && (seg.segment === 'なお' || seg.segment === 'なご')) {
+      if (i + 1 < rawSegments.length && rawSegments[i + 1].isWordLike && /[\u4E00-\u9FAF]/.test(rawSegments[i + 1].segment)) {
+        const prefix = seg.segment[0]; // 'な'
+        const suffix = seg.segment[1]; // 'お' or 'ご'
+        processed.push(
+          { ...seg, segment: prefix },
+          { ...seg, segment: suffix }
+        );
+        continue;
+      }
+    }
+    processed.push(seg);
+  }
+  return processed;
 }
