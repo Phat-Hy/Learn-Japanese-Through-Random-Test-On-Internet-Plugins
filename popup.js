@@ -786,7 +786,7 @@ async function analyzeSentenceFlow(text) {
   let wordResults = {};
   let passes = 0;
   
-  while (passes < 3) {
+  while (passes < 5) {
     segments = mergeSegments(rawSegments, blacklist);
     const uniqueWords = [...new Set(segments.filter(s => s.isWordLike && isJapanese(s.segment)).map(s => s.segment))];
     
