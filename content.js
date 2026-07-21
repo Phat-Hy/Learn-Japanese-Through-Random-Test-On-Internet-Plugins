@@ -652,7 +652,7 @@ function getWordClass(word, posString) {
   }
   
   // Fallback heuristic for verb conjugations
-  const verbEndings = ['て', 'で', 'たい', 'た', 'だ', 'ます', 'ました', 'ません', 'ましょう', 'させる', 'される', 'せる', 'れる', 'なきゃ', 'なくちゃ', 'れば'];
+  const verbEndings = ['て', 'で', 'たい', 'た', 'だ', 'ます', 'ました', 'ません', 'ましょう', 'よう', 'させる', 'される', 'せる', 'れる', 'なきゃ', 'なくちゃ', 'れば'];
   for (const ending of verbEndings) {
     if (word.length > 1 && word.endsWith(ending)) {
       return 'pos-verb';
@@ -718,6 +718,13 @@ function detectGrammar(text, formula) {
         formula: 'Verb/Adj [Negative-form]'
       });
     }
+    if (formula.includes('[Volitional]') && !results.some(r => r.pattern === '〜よう / 〜ましょう')) {
+      results.push({
+        pattern: '〜よう / 〜ましょう',
+        desc: 'Volitional form / Let\'s do (indicates invitation / intention)',
+        formula: 'Verb [Volitional-form]'
+      });
+    }
   }
   
   return results;
@@ -780,6 +787,10 @@ function getWordInflection(text, type) {
   if (!text) return "";
   
   if (type === 'V') {
+    // Check Volitional
+    if (text.endsWith('ましょう') || /[おこそとのほもろごぞぼよ]う$/.test(text)) {
+      return '[Volitional]';
+    }
     // Check Conditional
     if (text.endsWith('たら') || text.endsWith('だら') || text.endsWith('ば') || text.endsWith('ましたら') || text.endsWith('れば')) {
       return '[Conditional]';
