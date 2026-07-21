@@ -2,6 +2,7 @@
 
 let wordActiveSenseMap = {};
 let currentWordDetailsList = [];
+let currentSegments = [];
 
 // DOM Elements
 const inputContainer = document.getElementById("input-container");
@@ -72,6 +73,7 @@ async function performAnalysis() {
     });
 
     // 3. Render Card
+    currentSegments = segments;
     renderPopupCard(segments, sentenceResult.data);
     
     // Toggle view visibility
@@ -202,6 +204,8 @@ function renderPopupCard(segments, sentenceData) {
       `;
     }
 
+    const sentenceFormula = generateSentenceFormula(segments, currentWordDetailsList);
+
     cardHolder.innerHTML = `
       <div class="glass-card">
         <!-- Back navigation in popup -->
@@ -215,6 +219,11 @@ function renderPopupCard(segments, sentenceData) {
           <span class="legend-item pos-particle">Particle</span>
           <span class="legend-item pos-adjective">Adjective</span>
           <span class="legend-item pos-adverb">Adverb</span>
+        </div>
+        
+        <div class="sentence-structure-box">
+          <span class="structure-label">Sentence Formula:</span>
+          <span class="structure-formula">${sentenceFormula}</span>
         </div>
         
         ${currentWordDetailsList.length > 0 ? `
@@ -402,6 +411,12 @@ function showPopupDrawer(wordDetail) {
         wordCard.classList.remove('pos-noun', 'pos-verb', 'pos-particle', 'pos-adjective', 'pos-adverb', 'pos-other');
         wordCard.classList.add(newPosClass);
         
+        // Update dynamic sentence structure formula
+        const formulaEl = cardHolder.querySelector(".structure-formula");
+        if (formulaEl) {
+          formulaEl.textContent = generateSentenceFormula(currentSegments, currentWordDetailsList);
+        }
+        
         const indicator = wordCard.querySelector(".sense-indicator");
         if (indicator) {
           indicator.textContent = `⇅ Alternate meaning (${index + 1} of ${wordDetail.senses.length})`;
@@ -533,4 +548,51 @@ function detectGrammar(text) {
   ];
   
   return rules.filter(r => r.regex.test(text));
+}
+
+function generateSentenceFormula(segments, detailsList) {
+  let parts = [];
+  let prevType = "";
+  
+  segments.forEach(seg => {
+    const text = seg.segment;
+    if (!seg.isWordLike || !isJapanese(text)) return;
+    
+    // Check for copulas
+    const copulas = ['です', 'だ', 'である', 'でした', 'だった'];
+    if (copulas.includes(text)) {
+      parts.push(text);
+      prevType = "copula";
+      return;
+    }
+    
+    // Check for common particles
+    const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ'];
+    if (particles.includes(text)) {
+      parts.push(text);
+      prevType = "particle";
+      return;
+    }
+    
+    // Extract Jisho part of speech
+    const detail = detailsList.find(d => d.word === text);
+    const activeSenseIdx = wordActiveSenseMap[text] || 0;
+    const posString = (detail && detail.senses && detail.senses[activeSenseIdx]) ? detail.senses[activeSenseIdx].pos : "";
+    
+    const wordClass = getWordClass(text, posString);
+    let type = "";
+    if (wordClass === 'pos-noun') type = "N";
+    else if (wordClass === 'pos-verb') type = "V";
+    else if (wordClass === 'pos-adjective') type = "Adj";
+    else if (wordClass === 'pos-adverb') type = "Adv";
+    else return;
+    
+    // Avoid contiguous duplicate symbols (N + N -> N)
+    if (type === prevType) return;
+    
+    parts.push(type);
+    prevType = type;
+  });
+  
+  return parts.join(" + ") || "Simple Sentence";
 }
