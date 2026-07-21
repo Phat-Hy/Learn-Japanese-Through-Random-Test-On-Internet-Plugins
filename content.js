@@ -613,7 +613,7 @@ function kanaToRomaji(kanaText) {
 }
 
 function getWordClass(word, posString) {
-  const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など'];
+  const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'なら'];
   if (particles.includes(word)) {
     return 'pos-particle';
   }
@@ -736,7 +736,7 @@ function generateSentenceFormula(segments, detailsList) {
     }
     
     // Check for common particles
-    const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ'];
+    const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'なら'];
     if (particles.includes(text)) {
       parts.push(text);
       prevType = "particle";
@@ -833,7 +833,7 @@ function getWordInflection(text, type) {
 }
 
 function mergeSegments(rawSegments, blacklist = []) {
-  const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た', 'だ', 'です', 'である', 'にぇ', 'ね', 'よ', 'な', 'さ', 'わ', 'ぞ', 'ぜ'];
+  const particles = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た', 'だ', 'です', 'である', 'にぇ', 'ね', 'よ', 'な', 'さ', 'わ', 'ぞ', 'ぜ', 'なら'];
   
   let merged = [];
   let i = 0;
