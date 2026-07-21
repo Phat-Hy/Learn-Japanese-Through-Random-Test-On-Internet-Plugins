@@ -582,8 +582,14 @@ function generateSentenceFormula(segments, detailsList) {
     const wordClass = getWordClass(text, posString);
     let type = "";
     if (wordClass === 'pos-noun') type = "N";
-    else if (wordClass === 'pos-verb') type = "V";
-    else if (wordClass === 'pos-adjective') type = "Adj";
+    else if (wordClass === 'pos-verb') {
+      const infl = getWordInflection(text, "V");
+      type = "V" + (infl ? " " + infl : "");
+    }
+    else if (wordClass === 'pos-adjective') {
+      const infl = getWordInflection(text, "Adj");
+      type = "Adj" + (infl ? " " + infl : "");
+    }
     else if (wordClass === 'pos-adverb') type = "Adv";
     else return;
     
@@ -595,4 +601,44 @@ function generateSentenceFormula(segments, detailsList) {
   });
   
   return parts.join(" + ") || "Simple Sentence";
+}
+
+function getWordInflection(text, type) {
+  if (!text) return "";
+  
+  if (type === 'V') {
+    // Check Conditional
+    if (text.endsWith('たら') || text.endsWith('だら') || text.endsWith('ば') || text.endsWith('ましたら') || text.endsWith('れば')) {
+      return '[Conditional]';
+    }
+    // Check Past
+    if (text.endsWith('た') || text.endsWith('だ') || text.endsWith('ました') || text.endsWith('たです') || text.endsWith('だです')) {
+      return '[Past]';
+    }
+    // Check Negative
+    if (text.endsWith('ない') || text.endsWith('ません') || text.endsWith('なかった') || text.endsWith('ませんでした')) {
+      return '[Negative]';
+    }
+    // Check Te-form
+    if (text.endsWith('て') || text.endsWith('で')) {
+      return '[Te-form]';
+    }
+  }
+  
+  if (type === 'Adj') {
+    // Check Conditional
+    if (text.endsWith('ければ') || text.endsWith('かったら')) {
+      return '[Conditional]';
+    }
+    // Check Past
+    if (text.endsWith('かった') || text.endsWith('かったです')) {
+      return '[Past]';
+    }
+    // Check Negative
+    if (text.endsWith('くない') || text.endsWith('くないです') || text.endsWith('くなかった') || text.endsWith('くなかったです')) {
+      return '[Negative]';
+    }
+  }
+  
+  return "";
 }
