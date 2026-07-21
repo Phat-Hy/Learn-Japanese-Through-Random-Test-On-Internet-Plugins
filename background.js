@@ -38,15 +38,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "jisho-lookup-batch") {
-    Promise.all(request.words.map(w => jishoLookup(w).catch(() => null)))
-      .then(results => {
-        const responseData = {};
-        request.words.forEach((w, idx) => {
-          responseData[w] = results[idx];
-        });
-        sendResponse({ success: true, data: responseData });
-      })
-      .catch(error => sendResponse({ success: false, error: error.message }));
+    (async () => {
+      const responseData = {};
+      for (const w of request.words) {
+        try {
+          responseData[w] = await jishoLookup(w);
+        } catch (e) {
+          responseData[w] = null;
+        }
+      }
+      sendResponse({ success: true, data: responseData });
+    })().catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Keep the message channel open for async response
   }
 });
