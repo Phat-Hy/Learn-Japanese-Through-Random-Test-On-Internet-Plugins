@@ -851,7 +851,7 @@ function mergeSegments(rawSegments, blacklist = []) {
         }
         
         // Verb/Adjective suffix and conjugation endings
-        const conjugationEndings = ['ます', 'ました', 'ませ', 'ん', 'よう', 'ましょう', 'たら', 'だら', 'ば', 'すれば', 'ければ'];
+        const conjugationEndings = ['て', 'で', 'た', 'だ', 'ます', 'ました', 'ませ', 'ん', 'よう', 'ましょう', 'たら', 'だら', 'ば', 'すれば', 'ければ'];
         const isConjugation = conjugationEndings.includes(nextText);
         
         // Script detection
