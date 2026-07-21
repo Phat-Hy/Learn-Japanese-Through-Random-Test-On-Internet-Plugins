@@ -836,6 +836,14 @@ function isExactMatch(word, detail) {
   const dictWord = detail.dictionaryWord;
   if (dictWord === word || detail.reading === word) return true;
   
+  // Honorific suffixes
+  const suffixes = ['様', 'さま', 'ちゃん', 'くん', 'さん', 'たち', '達'];
+  for (const s of suffixes) {
+    if (word.endsWith(s) && word.startsWith(dictWord)) {
+      return true;
+    }
+  }
+  
   // If it's a verb/adjective conjugation (stem matches)
   if (dictWord && dictWord.length > 1) {
     const stem = dictWord.slice(0, -1);
@@ -858,7 +866,10 @@ function getReconstructedReading(word, detail) {
   
   if (dictWord && dictWord !== word && word.startsWith(dictWord)) {
     const suffix = word.slice(dictWord.length);
-    return reading + suffix;
+    let suffixReading = suffix;
+    if (suffix === '様') suffixReading = 'さま';
+    if (suffix === '達') suffixReading = 'たち';
+    return reading + suffixReading;
   }
   
   if (dictWord && dictWord.length > 1) {
