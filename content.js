@@ -150,7 +150,7 @@ async function showAnalysisCard(text, selection) {
   hostElement.style.top = `${rect.bottom + window.scrollY + 10}px`;
   
   // Constrain left positioning within viewport bounds
-  const cardWidth = 480;
+  const cardWidth = 560;
   const gap = 12;
   const leftPos = Math.max(10, Math.min(window.innerWidth - cardWidth - 20, rect.left + window.scrollX));
   hostElement.style.left = `${leftPos}px`;
