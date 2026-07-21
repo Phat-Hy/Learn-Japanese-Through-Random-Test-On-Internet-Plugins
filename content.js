@@ -869,6 +869,8 @@ function mergeSegments(rawSegments, blacklist = []) {
           shouldMerge = false;
         } else if (isConjugation) {
           shouldMerge = true;
+        } else if ((currentText === 'お' || currentText === 'ご' || currentText === '御') && nextHasKanji) {
+          shouldMerge = true; // Prefix + Kanji (e.g. お + 姉さん)
         } else if (currentHasKanji && nextHasKanji) {
           shouldMerge = true; // Kanji + Kanji (e.g. 夏 + 祭り)
         } else if (currentHasKanji && nextHasHiragana && !particles.includes(nextText)) {
