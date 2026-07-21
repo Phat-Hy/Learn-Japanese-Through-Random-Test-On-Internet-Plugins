@@ -1,1 +1,3 @@
-.harness/state/
+.agents/
+.harness/
+hs.settings.json
