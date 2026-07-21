@@ -137,57 +137,19 @@ async function jishoLookup(word) {
       senses: senses
     };
   } else {
-    // Fallback if word not found in Jisho: Query Google Translate for this specific word
-    try {
-      const transUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&dt=rm&q=${encodeURIComponent(word)}`;
-      const transRes = await fetch(transUrl);
-      if (transRes.ok) {
-        const transJson = await transRes.json();
-        let translation = "";
-        let romaji = "";
-        
-        if (transJson && transJson[0]) {
-          translation = transJson[0]
-            .map(segment => segment[0])
-            .filter(Boolean)
-            .join('');
-            
-          for (const segment of transJson[0]) {
-            if (segment[0] === null && segment[1] === null) {
-              romaji = segment[3] || segment[2] || "";
-              break;
-            }
-          }
+    // If not found in Jisho, immediately return a safe default without hitting Google Translate.
+    // This prevents concurrent Google Translate lookups from triggering API rate limits (429).
+    resultData = {
+      word: word,
+      dictionaryWord: word,
+      reading: word,
+      senses: [
+        {
+          pos: "Unknown",
+          definitions: ["No translation found"]
         }
-        
-        resultData = {
-          word: word,
-          dictionaryWord: word,
-          reading: romaji || word,
-          senses: [
-            {
-              pos: "Name / Term",
-              definitions: [translation || "No translation found"]
-            }
-          ]
-        };
-      } else {
-        throw new Error();
-      }
-    } catch (e) {
-      // Final fallback if translation also fails
-      resultData = {
-        word: word,
-        dictionaryWord: word,
-        reading: "",
-        senses: [
-          {
-            pos: "Unknown",
-            definitions: ["No translation found"]
-          }
-        ]
-      };
-    }
+      ]
+    };
   }
   
   // Store in cache only if it's not a failed definition

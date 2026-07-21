@@ -12,6 +12,8 @@ let wordActiveSenseMap = {};
 let currentWordDetailsList = [];
 let currentSegments = [];
 
+const PARTICLES = ['は', 'が', 'を', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'から', 'まで', 'より', 'だけ', 'ばかり', 'ほど', 'ぐらい', 'など', 'て', 'た', 'だ', 'です', 'である', 'にぇ', 'ね', 'よ', 'な', 'わ', 'ぞ', 'ぜ', 'なら'];
+
 // Initialize listeners
 document.addEventListener("mouseup", handleTextSelection);
 document.addEventListener("keyup", handleTextSelection);
@@ -909,7 +911,12 @@ async function analyzeSentenceFlow(text) {
   
   while (passes < 5) {
     segments = mergeSegments(rawSegments, blacklist);
-    const uniqueWords = [...new Set(segments.filter(s => s.isWordLike && isJapanese(s.segment)).map(s => s.segment))];
+    const uniqueWords = [...new Set(
+      segments
+        .filter(s => s.isWordLike && isJapanese(s.segment))
+        .map(s => s.segment)
+        .filter(w => !PARTICLES.includes(w) && !['です', 'だ', 'である', 'でした', 'だった'].includes(w))
+    )];
     
     const wordsToQuery = uniqueWords.filter(w => !wordResults[w]);
     if (wordsToQuery.length > 0) {
