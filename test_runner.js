@@ -227,4 +227,14 @@ async function runAllTests() {
   }
 }
 
-runAllTests().catch(console.error);
+async function runCommandLine() {
+  const customSentence = process.argv[2];
+  if (customSentence) {
+    const result = await analyzeSentenceFlow(customSentence);
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    await runAllTests();
+  }
+}
+
+runCommandLine().catch(console.error);
