@@ -973,7 +973,7 @@ async function analyzeSentenceFlow(text) {
 }
 
 function isExactMatch(word, detail) {
-  if (!detail) return false;
+  if (!detail || detail.isFallback) return false;
   
   const dictWord = detail.dictionaryWord;
   if (dictWord === word || detail.reading === word) return true;

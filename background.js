@@ -140,10 +140,11 @@ async function jishoLookup(word) {
   } else {
     // If not found in Jisho, immediately return a safe default without hitting Google Translate.
     // This prevents concurrent Google Translate lookups from triggering API rate limits (429).
-    resultData = {
+     resultData = {
       word: word,
       dictionaryWord: word,
       reading: word,
+      isFallback: true,
       senses: [
         {
           pos: "Unknown",
